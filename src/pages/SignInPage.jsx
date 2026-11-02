@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Lock, ChevronDown } from "lucide-react";
+import { User, Lock, ChevronDown, AlertCircle } from "lucide-react";
 import TopNavSwitcher from "../components/TopNavSwitcher";
 import api from "../api/User";
 
@@ -19,8 +19,15 @@ export default function SignInPage() {
     setIsSubmitting(true);
 
     try {
-      const { data } = await api.post("/logIn", { email, password });
-      localStorage.setItem("token", data.token);
+      const cleanEmail = email.trim().toLowerCase();
+      const { data } = await api.post("/logIn", { email: cleanEmail, password });
+      
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
       navigate("/");
     } catch (requestError) {
       setErrorMessage(
@@ -30,6 +37,12 @@ export default function SignInPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDemoFill = () => {
+    setEmail("kaifalam9580@gmail.com");
+    setPassword("1234");
+    setErrorMessage("");
   };
 
   return (
@@ -131,16 +144,13 @@ export default function SignInPage() {
               />
 
               {/* Woman Illustration */}
-              {/* Hair Back */}
               <ellipse cx="205" cy="115" rx="34" ry="42" fill="#111827" />
 
-              {/* Neck & Body */}
               <rect x="195" y="135" width="20" height="22" fill="#FCE7D0" />
               <path
                 d="M175,150 C180,142 230,142 235,150 L250,230 L160,230 Z"
                 fill="#3B82F6"
               />
-              {/* White Polka Dots on Shirt */}
               <circle cx="185" cy="165" r="3" fill="#FFFFFF" />
               <circle cx="205" cy="160" r="3" fill="#FFFFFF" />
               <circle cx="225" cy="170" r="3" fill="#FFFFFF" />
@@ -150,7 +160,6 @@ export default function SignInPage() {
               <circle cx="190" cy="215" r="3" fill="#FFFFFF" />
               <circle cx="215" cy="220" r="3" fill="#FFFFFF" />
 
-              {/* Head / Face */}
               <ellipse cx="202" cy="105" rx="20" ry="24" fill="#FCE7D0" />
               <circle cx="195" cy="100" r="2" fill="#1F2937" />
               <circle cx="208" cy="100" r="2" fill="#1F2937" />
@@ -174,13 +183,11 @@ export default function SignInPage() {
                 fill="none"
               />
 
-              {/* Hair Front Bob */}
               <path
                 d="M182 100 C182 80 222 80 222 100 C222 115 218 125 218 125 C210 105 190 105 182 125 Z"
                 fill="#111827"
               />
 
-              {/* Arm & Pointing Hand reaching to the card */}
               <path
                 d="M210,175 L150,185 C145,185 140,180 145,175 L155,170"
                 stroke="#FCE7D0"
@@ -198,7 +205,6 @@ export default function SignInPage() {
                 fill="#FCE7D0"
               />
 
-              {/* Skirt / Pants */}
               <rect
                 x="160"
                 y="230"
@@ -352,9 +358,13 @@ export default function SignInPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {errorMessage && (
-                <p role="alert" className="text-sm font-medium text-red-600">
-                  {errorMessage}
-                </p>
+                <div
+                  role="alert"
+                  className="p-3 bg-red-50 border border-red-200 text-red-600 text-xs sm:text-sm font-semibold rounded-lg flex items-center gap-2"
+                >
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
               )}
 
               {/* Email */}
@@ -397,8 +407,8 @@ export default function SignInPage() {
                 </div>
               </div>
 
-              {/* Checkbox */}
-              <div className="flex items-center pt-1">
+              {/* Checkbox & Demo Helper */}
+              <div className="flex items-center justify-between pt-1">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -407,9 +417,18 @@ export default function SignInPage() {
                     className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20 cursor-pointer"
                   />
                   <span className="text-xs text-[#506690] font-medium">
-                    Subscribe to weekly newsletter
+                    Subscribe to newsletter
                   </span>
                 </label>
+
+                {/* Quick Auto-fill button for testing */}
+                <button
+                  type="button"
+                  onClick={handleDemoFill}
+                  className="text-[11px] text-primary hover:underline font-bold"
+                >
+                  Use Demo Account
+                </button>
               </div>
 
               {/* Sign In Button */}
@@ -417,7 +436,7 @@ export default function SignInPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-[#E11D48] via-[#8B5CF6] to-[#4361EE] hover:opacity-95 active:scale-[0.99] text-white font-extrabold text-sm tracking-wider uppercase shadow-md transition-all duration-200 cursor-pointer"
+                  className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-[#E11D48] via-[#8B5CF6] to-[#4361EE] hover:opacity-95 active:scale-[0.99] text-white font-extrabold text-sm tracking-wider uppercase shadow-md transition-all duration-200 cursor-pointer disabled:opacity-70"
                 >
                   {isSubmitting ? "SIGNING IN..." : "SIGN IN"}
                 </button>
@@ -480,7 +499,12 @@ export default function SignInPage() {
             {/* Bottom Register Switch Link */}
             <div className="mt-6 sm:mt-8 text-center text-xs">
               <span className="text-[#506690]">Don't have an account ? </span>
-              SIGN UP
+              <Link
+                to="/signup"
+                className="text-[#4361EE] font-black hover:underline uppercase tracking-wide"
+              >
+                SIGN UP
+              </Link>
             </div>
           </div>
 

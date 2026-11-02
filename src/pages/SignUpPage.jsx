@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Contact, User, Lock, ChevronDown } from "lucide-react";
+import { Contact, User, Lock, ChevronDown, AlertCircle } from "lucide-react";
 import TopNavSwitcher from "../components/TopNavSwitcher";
+import api from "../api/User";
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -19,25 +20,22 @@ export default function SignUpPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("http://localhost:4000/api/user/signUP", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanName = name.trim();
+
+      const { data } = await api.post("/signUP", {
+        name: cleanName,
+        email: cleanEmail,
+        password,
       });
-      console.log(response);
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Unable to create account");
-      }
-
-      navigate("/");
+      // Redirect to sign in page after successful registration
+      navigate("/signin");
     } catch (requestError) {
       setError(
-        requestError instanceof TypeError
-          ? "Could not reach the API. Check that the backend is running."
-          : requestError.message,
+        requestError.response?.data?.message ||
+          requestError.message ||
+          "Could not reach the API. Please ensure the backend server is running."
       );
     } finally {
       setIsSubmitting(false);
@@ -149,9 +147,13 @@ export default function SignUpPage() {
         {/* Sign Up Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <p role="alert" className="text-sm font-medium text-red-600">
-              {error}
-            </p>
+            <div
+              role="alert"
+              className="p-3 bg-red-50 border border-red-200 text-red-600 text-xs sm:text-sm font-semibold rounded-lg flex items-center gap-2"
+            >
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
           )}
 
           {/* Name */}
@@ -234,9 +236,9 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-[#E11D48] via-[#8B5CF6] to-[#4361EE] hover:opacity-95 active:scale-[0.99] text-white font-extrabold text-sm tracking-wider uppercase shadow-md transition-all duration-200 cursor-pointer"
+              className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-[#E11D48] via-[#8B5CF6] to-[#4361EE] hover:opacity-95 active:scale-[0.99] text-white font-extrabold text-sm tracking-wider uppercase shadow-md transition-all duration-200 cursor-pointer disabled:opacity-70"
             >
-              {isSubmitting ? "CREATING ACCOUNT..." : "SIGN UP"}
+              {isSubmitting ? "CREATING ACCOUNT..." : "SIGN IN"}
             </button>
           </div>
         </form>
